@@ -35,6 +35,48 @@ def mongraphique():
 def mongraphique2():
     return render_template("graphique2.html")
 
+# Route pour obtenir les commits
+@app.route('/commits/')
+def commits():
+    # URL de l'API GitHub pour les commits
+    url = 'https://api.github.com/repos/OpenRSI/5MCSI_Metriques/commits'
+    response = requests.get(url)
+    commits_data = response.json()
+
+    # Compter les commits par minute
+    commit_count = {}
+    for commit in commits_data:
+        commit_date = commit['commit']['author']['date']
+        date_object = datetime.strptime(commit_date, '%Y-%m-%dT%H:%M:%SZ')
+        minute = date_object.strftime('%Y-%m-%d %H:%M')
+        if minute in commit_count:
+            commit_count[minute] += 1
+        else:
+            commit_count[minute] = 1
+
+    # Trier les données par minute
+    minutes = sorted(commit_count.keys())
+    counts = [commit_count[minute] for minute in minutes]
+
+    # Générer le graphique
+    fig, ax = plt.subplots()
+    ax.bar(minutes, counts)
+    ax.set_xlabel('Minute')
+    ax.set_ylabel('Nombre de Commits')
+    ax.set_title('Nombre de Commits par Minute')
+
+    # Sauvegarder le graphique dans un buffer et le convertir en base64
+    buf = io.BytesIO()
+    plt.xticks(rotation=90)
+    plt.tight_layout()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    buf.close()
+
+    # Afficher le graphique dans une page HTML
+    return render_template('commits.html', image_base64=image_base64)
+
 
   
 if __name__ == "__main__":
