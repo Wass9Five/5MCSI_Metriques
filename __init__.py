@@ -1,19 +1,17 @@
-from flask import Flask, render_template_string, render_template, jsonify
-from flask import render_template
-from flask import json
-from datetime import datetime
+from flask import Flask, render_template, jsonify
 from urllib.request import urlopen
-import sqlite3
-                                                                                                                                       
-app = Flask(__name__)                                                                                                                  
-                                                                                                                                       
+from datetime import datetime
+import json
+
+app = Flask(__name__)
+
 @app.route('/')
 def hello_world():
-    return render_template('hello.html') #Comm2
+    return render_template('hello.html')  # Comm2
 
 @app.route("/contact/")
 def moncontact():
-     return render_template("contact.html")
+    return render_template("contact.html")
 
 @app.route('/tawarano/')
 def meteo():
@@ -23,7 +21,7 @@ def meteo():
     results = []
     for list_element in json_content.get('list', []):
         dt_value = list_element.get('dt')
-        temp_day_value = list_element.get('main', {}).get('temp') - 273.15 # Conversion de Kelvin en °c 
+        temp_day_value = list_element.get('main', {}).get('temp') - 273.15  # Conversion de Kelvin en °C
         results.append({'Jour': dt_value, 'temp': temp_day_value})
     return jsonify(results=results)
 
@@ -39,8 +37,8 @@ def mongraphique2():
 def commits():
     # URL de l'API GitHub pour les commits
     url = 'https://api.github.com/repos/OpenRSI/5MCSI_Metriques/commits'
-    response = requests.get(url)
-    commits_data = response.json()
+    response = urlopen(url)
+    commits_data = json.loads(response.read().decode('utf-8'))
     
     # Préparer les données pour l'affichage
     results = []
@@ -52,6 +50,5 @@ def commits():
 
     return jsonify(results=results)
 
-  
 if __name__ == "__main__":
-  app.run(debug=True)
+    app.run(debug=True)
